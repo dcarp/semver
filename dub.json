@@ -1,0 +1,8 @@
+{
+    "name": "semver",
+    "description": "Semantic Versioning Library",
+    "copyright": "Copyright © 2014 Dragoş Carp",
+    "license": "MIT",
+    "authors": ["Dragoş Carp"],
+    "targetType": "library"
+}
