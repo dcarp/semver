@@ -37,18 +37,18 @@ struct SemVer
     private string[] prerelease;
     private string[] build;
 
-    private bool isValid;
+    private bool _isValid;
 
     @disable this();
 
     /**
      * Creates and validates a version number from a string.
      *
-     * If string format is invalid it just sets the $(D valid) property to $(D false).
+     * If string format is invalid it just sets the $(D isValid) property to $(D false).
      */
     this(string semVer)
     {
-        isValid = false;
+        _isValid = false;
         if (semVer.empty)
             return;
         if (!semVer.skipOver('v'))
@@ -79,7 +79,7 @@ struct SemVer
                 return;
         }
 
-        isValid = true;
+        _isValid = true;
     }
 
     /**
@@ -87,7 +87,7 @@ struct SemVer
      */
     string toString() const
     {
-        if (!isValid)
+        if (!_isValid)
             return "<invalid_semver>";
 
         string semVer = "%(%s.%)".format(ids);
@@ -98,30 +98,50 @@ struct SemVer
         return semVer;
     }
 
-    /**
-     * Property that indicates if this is a valid, semantic version.
-     */
+    deprecated("Please use semver.SemVer.isValid instead.")
     @property bool valid() const
     {
         return isValid;
     }
 
     /**
+     * Property that indicates whether this $(D SemVer) is valid.
+     */
+    @property bool isValid() const
+    {
+        return _isValid;
+    }
+
+    /**
+     * Property that indicates whether this $(D SemVer) is stable.
+     */
+    @property bool isStable() const
+    {
+        return prerelease.empty;
+    }
+
+    deprecated("Please use semver.SemVer.increment instead.")
+    SemVer inc(VersionPart versionPart) const
+    {
+        return increment(versionPart);
+    }
+
+    /**
      * Increment version number.
      */
-    SemVer inc(VersionPart versionPart) const
+    SemVer increment(VersionPart versionPart) const
     in
     {
-        assert(this.valid);
+        assert(this.isValid);
     }
     out(result)
     {
-        assert(result.valid);
+        assert(result.isValid);
     }
     body
     {
         SemVer result = "0";
-        foreach (i; 0..versionPart)
+        foreach (i; VersionPart.MAJOR .. versionPart)
             result.ids[i] = this.ids[i];
         if (versionPart != VersionPart.PRERELEASE)
             result.ids[versionPart] = this.ids[versionPart]+1;
@@ -137,13 +157,13 @@ struct SemVer
 
     unittest
     {
-        assert(SemVer("1.2.3").inc(VersionPart.MAJOR) == SemVer("2.0.0"));
-        assert(SemVer("1.2.3").inc(VersionPart.MINOR) == SemVer("1.3.0"));
-        assert(SemVer("1.2.3-alpha").inc(VersionPart.MINOR) == SemVer("1.3.0"));
-        assert(SemVer("1.2.3").inc(VersionPart.PATCH) == SemVer("1.2.4"));
-        assert(SemVer("1.2.3-alpha").inc(VersionPart.PATCH) == SemVer("1.2.4"));
-        assert(SemVer("1.2.3").inc(VersionPart.PRERELEASE) == SemVer("1.2.3"));
-        assert(SemVer("1.2.3-alpha").inc(VersionPart.PRERELEASE) == SemVer("1.2.3"));
+        assert(SemVer("1.2.3").increment(VersionPart.MAJOR) == SemVer("2.0.0"));
+        assert(SemVer("1.2.3").increment(VersionPart.MINOR) == SemVer("1.3.0"));
+        assert(SemVer("1.2.3-alpha").increment(VersionPart.MINOR) == SemVer("1.3.0"));
+        assert(SemVer("1.2.3").increment(VersionPart.PATCH) == SemVer("1.2.4"));
+        assert(SemVer("1.2.3-alpha").increment(VersionPart.PATCH) == SemVer("1.2.4"));
+        assert(SemVer("1.2.3").increment(VersionPart.PRERELEASE) == SemVer("1.2.3"));
+        assert(SemVer("1.2.3-alpha").increment(VersionPart.PRERELEASE) == SemVer("1.2.3"));
     }
 
     /**
@@ -154,8 +174,8 @@ struct SemVer
     int opCmp(ref const SemVer other) const
     in
     {
-        assert(this.valid);
-        assert(other.valid);
+        assert(this.isValid);
+        assert(other.isValid);
     }
     body
     {
@@ -214,12 +234,19 @@ struct SemVer
 
 unittest
 {
-    assert(!SemVer("1.2-.alpha.32").valid);
-    assert(!SemVer("1.2-alpha+").valid);
-    assert(!SemVer("1.2-alpha_").valid);
-    assert(!SemVer("1.2+32.").valid);
-    assert(!SemVer("1.2.5.6").valid);
-    assert(!SemVer("").valid);
+    assert(!SemVer("1.2-.alpha.32").isValid);
+    assert(!SemVer("1.2-alpha+").isValid);
+    assert(!SemVer("1.2-alpha_").isValid);
+    assert(!SemVer("1.2+32.").isValid);
+    assert(!SemVer("1.2.5.6").isValid);
+    assert(!SemVer("").isValid);
+    assert(SemVer("1").isStable);
+    assert(SemVer("1.0").isStable);
+    assert(SemVer("1.0.0").isStable);
+    assert(SemVer("1.0+build3.").isStable);
+    assert(SemVer("1.0.0+build.5").isStable);
+    assert(!SemVer("1.0.0-alpha").isStable);
+    assert(!SemVer("1.0.0-alpha.1").isStable);
     assert(SemVer("1.0.0-alpha") < SemVer("1.0.0-alpha.1"));
     assert(SemVer("1.0.0-alpha.1") < SemVer("1.0.0-alpha.beta"));
     assert(SemVer("1.0.0-alpha.beta") < SemVer("1.0.0-beta"));
@@ -256,18 +283,18 @@ struct SemVerRange
         assert(ranges.all!(r => r.all!(r => ["<", "<=", "=", ">=", ">"].canFind(r.op))));
     }
 
-    private bool isValid;
+    private bool _isValid;
 
     @disable this();
 
     /**
      * Creates and validates a semantic version range from a string.
      *
-     * If string format is invalid it just sets the $(D valid) property to $(D false).
+     * If string format is invalid it just sets the $(D isValid) property to $(D false).
      */
     this(string semVerRange)
     {
-        isValid = false;
+        _isValid = false;
         auto re = regex(`(~|~>|\^|<|<=|=|>=|>)?[v]?(\d+|\*|X|x)(?:\.(\d+|\*|X|x))?(?:\.(\d+|\*|X|x))?([\S]*)`);
 
         ranges = [SimpleRange[].init];
@@ -285,7 +312,7 @@ struct SemVerRange
                 return;
 
             auto semVer = SemVer(expanded);
-            if (!semVer.valid)
+            if (!semVer.isValid)
                 return;
 
             switch (m.captures.pre.strip)
@@ -319,7 +346,7 @@ struct SemVerRange
                         case VersionPart.MINOR:
                         case VersionPart.PATCH:
                             ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
-                            ranges[$-1] ~= SimpleRange("<", semVer.inc(--wildcard).appendPrerelease0);
+                            ranges[$-1] ~= SimpleRange("<", semVer.increment(--wildcard).appendPrerelease0);
                             break;
                         case VersionPart.PRERELEASE:
                             ranges[$-1] ~= SimpleRange("=", semVer);
@@ -351,7 +378,7 @@ struct SemVerRange
                             break;
                     }
                     ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
-                    ranges[$-1] ~= SimpleRange("<", semVer.inc(wildcard).appendPrerelease0);
+                    ranges[$-1] ~= SimpleRange("<", semVer.increment(wildcard).appendPrerelease0);
                     break;
                 case "~>":
                     final switch (wildcard)
@@ -368,7 +395,7 @@ struct SemVerRange
                             break;
                     }
                     ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
-                    ranges[$-1] ~= SimpleRange("<", semVer.inc(wildcard).appendPrerelease0);
+                    ranges[$-1] ~= SimpleRange("<", semVer.increment(wildcard).appendPrerelease0);
                     break;
                 case "^":
                     if (wildcard == VersionPart.MAJOR || !semVer.prerelease.empty)
@@ -376,17 +403,17 @@ struct SemVerRange
                     if (semVer.ids[VersionPart.MAJOR] != 0)
                     {
                         ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
-                        ranges[$-1] ~= SimpleRange("<", semVer.inc(VersionPart.MAJOR).appendPrerelease0);
+                        ranges[$-1] ~= SimpleRange("<", semVer.increment(VersionPart.MAJOR).appendPrerelease0);
                     }
                     else if (semVer.ids[VersionPart.MINOR] != 0)
                     {
                         ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
-                        ranges[$-1] ~= SimpleRange("<", semVer.inc(VersionPart.MINOR).appendPrerelease0);
+                        ranges[$-1] ~= SimpleRange("<", semVer.increment(VersionPart.MINOR).appendPrerelease0);
                     } 
                     else
                     {
                         ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
-                        ranges[$-1] ~= SimpleRange("<", semVer.inc(VersionPart.PATCH).appendPrerelease0);
+                        ranges[$-1] ~= SimpleRange("<", semVer.increment(VersionPart.PATCH).appendPrerelease0);
                     }
                     break;
                 default:
@@ -395,7 +422,7 @@ struct SemVerRange
             }
             semVerRange = m.captures.post;
         }
-        isValid = true;
+        _isValid = true;
     }
 
     private static VersionPart wildcardAt(string[3] semVer)
@@ -453,26 +480,32 @@ struct SemVerRange
      */
     string toString() const
     {
-        if (!isValid)
+        if (!_isValid)
             return "<invalid_semver_range>";
 
         return "%(%(%s %) || %)".format(ranges);
     }
 
-    /**
-     * Property that indicates if this is a valid, semantic version range.
-     */
+    deprecated("Please use semver.SemVerRange.isValid instead.")
     @property bool valid() const
     {
         return isValid;
     }
 
+    /**
+     * Property that indicates whether this $(D SemVerRange) is valid.
+     */
+    @property bool isValid() const
+    {
+        return _isValid;
+    }
+
     private static bool simpleRangeSatisfiedBy(SimpleRange simpleRange, SemVer semVer)
     in
     {
-        assert(semVer.valid);
+        assert(semVer.isValid);
         assert(["<", "<=", "=", ">=", ">"].canFind(simpleRange.op));
-        assert(simpleRange.semVer.valid);
+        assert(simpleRange.semVer.isValid);
     }
     body
     {
@@ -499,8 +532,8 @@ struct SemVerRange
     bool satisfiedBy(SemVer semVer)
     in
     {
-        assert(semVer.valid);
-        assert(valid);
+        assert(semVer.isValid);
+        assert(isValid);
     }
     body
     {
@@ -524,8 +557,8 @@ bool satisfies(SemVer semVer, SemVerRange semVerRange)
 SemVer maxSatisfying(SemVer[] semVers, SemVerRange semVerRange)
 in
 {
-    assert(semVers.all!"a.valid");
-    assert(semVerRange.valid);
+    assert(semVers.all!"a.isValid");
+    assert(semVerRange.isValid);
 }
 body
 {
@@ -535,9 +568,9 @@ body
 
 unittest
 {
-    assert(SemVerRange("1.x || >=2.5.0 || 5.0.0 - 7.2.3").valid);
-    assert(!SemVerRange("blerg").valid);
-    assert(!SemVerRange("git+https://user:password0123@github.com/foo").valid);
+    assert(SemVerRange("1.x || >=2.5.0 || 5.0.0 - 7.2.3").isValid);
+    assert(!SemVerRange("blerg").isValid);
+    assert(!SemVerRange("git+https://user:password0123@github.com/foo").isValid);
 
     assert(SemVer("1.2.3").satisfies(SemVerRange("1.x || >=2.5.0 || 5.0.0 - 7.2.3")));
 
