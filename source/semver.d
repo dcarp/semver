@@ -26,6 +26,7 @@ enum VersionPart
     MINOR,      // minor number
     PATCH,      // patch number
     PRERELEASE, // prerelease suffix
+    BUILD,      // build suffix
 };
 
 /**
@@ -169,7 +170,8 @@ struct SemVer
     /**
      * Compare this $(LREF SemVer) with the $(D other) $(LREF SemVer).
      *
-     * Note that the build information suffixes are ignored.
+     * Note that the build parts are considered for this operation.
+     * Please use $(LREF differenceAt) to find whether the versions differ only on the build part.
      */
     int opCmp(ref const SemVer other) const
     in
@@ -185,27 +187,36 @@ struct SemVer
                 return ids[i] < other.ids[i] ? -1 : 1;
         }
 
-        if (!prerelease.empty && other.prerelease.empty)
-            return -1;
-        if (prerelease.empty && !other.prerelease.empty)
-            return 1;
-
-        foreach (a, b; lockstep(prerelease, other.prerelease))
+        int compareSufix(const string[] suffix, const string[] anotherSuffix)
         {
-            if (a.isNumeric && b.isNumeric)
-            {
-                if (a.to!uint != b.to!uint)
-                    return a.to!uint < b.to!uint ? -1 : 1;
-                else
-                    continue;
-            }
-            if (a != b)
-                return a < b ? -1 : 1;
-        }
-        if (prerelease.length != other.prerelease.length)
-            return prerelease.length < other.prerelease.length ? -1 : 1;
+            if (!suffix.empty && anotherSuffix.empty)
+                return -1;
+            if (suffix.empty && !anotherSuffix.empty)
+                return 1;
 
-        return 0;
+            foreach (a, b; lockstep(suffix, anotherSuffix))
+            {
+                if (a.isNumeric && b.isNumeric)
+                {
+                    if (a.to!uint != b.to!uint)
+                        return a.to!uint < b.to!uint ? -1 : 1;
+                    else
+                        continue;
+                }
+                if (a != b)
+                    return a < b ? -1 : 1;
+            }
+            if (suffix.length != anotherSuffix.length)
+                return suffix.length < anotherSuffix.length ? -1 : 1;
+            else
+                return 0;
+        }
+
+        auto result = compareSufix(prerelease, other.prerelease);
+        if (result != 0)
+            return result;
+        else
+            return compareSufix(build, other.build);
     }
 
     /// ditto
@@ -215,10 +226,10 @@ struct SemVer
     }
 
     /**
-     * Check for equality between this $(LREF SemVer) and the $(D other)
-     *  $(LREF SemVer).
+     * Check for equality between this $(LREF SemVer) and the $(D other) $(LREF SemVer).
      *
-     * Note that the build information suffixes are ignored.
+     * Note that the build parts are considered for this operation.
+     * Please use $(LREF differenceAt) to find whether the versions differ only on the build part.
      */
     bool opEquals(ref const SemVer other) const
     {
@@ -229,6 +240,37 @@ struct SemVer
     bool opEquals(in SemVer other) const
     {
         return this.opEquals(other);
+    }
+
+    /**
+     * Compare two <b>different</b> versions and return the parte they differ on.
+     */
+    VersionPart differenceAt(ref const SemVer other) const
+    in
+    {
+        assert(this != other);
+    }
+    body
+    {
+        foreach (i; VersionPart.MAJOR .. VersionPart.PRERELEASE)
+        {
+            if (ids[i] != other.ids[i])
+                return i;
+        }
+
+        if (prerelease != other.prerelease)
+            return VersionPart.PRERELEASE;
+
+        if (build != other.build)
+            return VersionPart.BUILD;
+
+        assert(0, "Call 'differenceAt' for unequal versions only");
+    }
+
+    /// ditto
+    VersionPart differenceAt(in SemVer other) const
+    {
+        return this.differenceAt(other);
     }
 }
 
@@ -247,6 +289,7 @@ unittest
     assert(SemVer("1.0.0+build.5").isStable);
     assert(!SemVer("1.0.0-alpha").isStable);
     assert(!SemVer("1.0.0-alpha.1").isStable);
+
     assert(SemVer("1.0.0-alpha") < SemVer("1.0.0-alpha.1"));
     assert(SemVer("1.0.0-alpha.1") < SemVer("1.0.0-alpha.beta"));
     assert(SemVer("1.0.0-alpha.beta") < SemVer("1.0.0-beta"));
@@ -254,7 +297,15 @@ unittest
     assert(SemVer("1.0.0-beta.2") < SemVer("1.0.0-beta.11"));
     assert(SemVer("1.0.0-beta.11") < SemVer("1.0.0-rc.1"));
     assert(SemVer("1.0.0-rc.1") < SemVer("1.0.0"));
-    assert(SemVer("1.0.0-rc.1") == SemVer("1.0.0-rc.1+build.5"));
+    assert(SemVer("1.0.0-rc.1") > SemVer("1.0.0-rc.1+build.5"));
+    assert(SemVer("1.0.0-rc.1+build.5") == SemVer("1.0.0-rc.1+build.5"));
+
+    assert(SemVer("1.0.0").differenceAt(SemVer("2")) == VersionPart.MAJOR);
+    assert(SemVer("1.0.0").differenceAt(SemVer("1.1.1")) == VersionPart.MINOR);
+    assert(SemVer("1.0.0-rc.1").differenceAt(SemVer("1.0.1-rc.1")) == VersionPart.PATCH);
+    assert(SemVer("1.0.0-alpha").differenceAt(SemVer("1.0.0-beta")) == VersionPart.PRERELEASE);
+    assert(SemVer("1.0.0-rc.1").differenceAt(SemVer("1.0.0")) == VersionPart.PRERELEASE);
+    assert(SemVer("1.0.0-rc.1").differenceAt(SemVer("1.0.0-rc.1+build.5")) == VersionPart.BUILD);
 }
 
 /**
@@ -351,6 +402,8 @@ struct SemVerRange
                         case VersionPart.PRERELEASE:
                             ranges[$-1] ~= SimpleRange("=", semVer);
                             break;
+                        case VersionPart.BUILD:
+                            assert(0, "Unexpected build part wildcard");
                     }
                     break;
                 case "<":
@@ -376,6 +429,8 @@ struct SemVerRange
                             --wildcard;
                             --wildcard;
                             break;
+                        case VersionPart.BUILD:
+                            assert(0, "Unexpected build part wildcard");
                     }
                     ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
                     ranges[$-1] ~= SimpleRange("<", semVer.increment(wildcard).appendPrerelease0);
@@ -393,6 +448,8 @@ struct SemVerRange
                             --wildcard;
                             --wildcard;
                             break;
+                        case VersionPart.BUILD:
+                            assert(0, "Unexpected build part wildcard");
                     }
                     ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
                     ranges[$-1] ~= SimpleRange("<", semVer.increment(wildcard).appendPrerelease0);
@@ -509,6 +566,8 @@ struct SemVerRange
     }
     body
     {
+        semVer.build = null;
+
         switch (simpleRange.op)
         {
             case "<":
@@ -576,6 +635,7 @@ unittest
 
     assert(SemVer("1.2.3").satisfies(SemVerRange("1.0.0 - 2.0.0")));
     assert(SemVer("1.0.0").satisfies(SemVerRange("1.0.0")));
+    assert(SemVer("1.0.0+build.5").satisfies(SemVerRange("1.0.0")));
     assert(SemVer("0.2.4").satisfies(SemVerRange(">=*")));
     assert(SemVer("1.2.3").satisfies(SemVerRange("*")));
     assert(SemVer("v1.2.3-foo").satisfies(SemVerRange("*")));
@@ -710,7 +770,11 @@ unittest
     assert(!SemVer("1.1.9").satisfies(SemVerRange("^1.2")));
     assert(!SemVer("2.0.0-pre").satisfies(SemVerRange("^1.2.3")));
 
-    auto semVers = [SemVer("0.8.0"), SemVer("1.0.0"), SemVer("1.1.0")];
+    auto semVers = [SemVer("1.1.0"), SemVer("1.0.0"), SemVer("0.8.0")];
     assert(semVers.maxSatisfying(SemVerRange("<=1.0.0")) == SemVer("1.0.0"));
+    assert(semVers.maxSatisfying(SemVerRange(">=1.0")) == SemVer("1.1.0"));
+
+    semVers = [SemVer("1.0.0+build.3"), SemVer("1.0.0+build.1"), SemVer("1.1.0")];
+    assert(semVers.maxSatisfying(SemVerRange("<=1.0.0")) == SemVer("1.0.0+build.3"));
     assert(semVers.maxSatisfying(SemVerRange(">=1.0")) == SemVer("1.1.0"));
 }
