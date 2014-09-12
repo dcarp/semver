@@ -2,8 +2,8 @@
  * License: <a href="http://opensource.org/licenses/MIT">MIT</a>.
  * Authors: Dragos Carp
  *
- * See_Also: 
- *    http://semver.org, https://github.com/isaacs/node-semver
+ * See_Also: <a href="http://semver.org">Semantic Versioning 2.0</a>,
+ * <a href="https://github.com/isaacs/node-semver">The semantic versioner for npm</a>
  */
 
 module semver;
@@ -22,15 +22,20 @@ import std.string;
  */
 enum VersionPart
 {
-    MAJOR,      // major number
-    MINOR,      // minor number
-    PATCH,      // patch number
-    PRERELEASE, // prerelease suffix
-    BUILD,      // build suffix
+    /** major number */
+    MAJOR,
+    /** minor number */
+    MINOR,
+    /** patch number */
+    PATCH,
+    /** prerelease suffix */
+    PRERELEASE,
+    /** build suffix */
+    BUILD,
 };
 
 /**
- * Represent a semantic version number MAJOR[.MINOR[.PATH]][-PRERELEASE][+BUILD].
+ * Represent a semantic version number MAJOR[.MINOR[.PATCH]][-PRERELEASE][+BUILD].
  */
 struct SemVer
 {
@@ -45,7 +50,7 @@ struct SemVer
     /**
      * Creates and validates a version number from a string.
      *
-     * If string format is invalid it just sets the $(D isValid) property to $(D false).
+     * If string format is invalid it just sets the $(D_PARAM isValid) property to $(D_KEYWORD false).
      */
     this(string semVer)
     {
@@ -106,7 +111,7 @@ struct SemVer
     }
 
     /**
-     * Property that indicates whether this $(D SemVer) is valid.
+     * Property that indicates whether this $(D_PSYMBOL SemVer) is valid.
      */
     @property bool isValid() const
     {
@@ -114,7 +119,7 @@ struct SemVer
     }
 
     /**
-     * Property that indicates whether this $(D SemVer) is stable.
+     * Property that indicates whether this $(D_PSYMBOL SemVer) is stable.
      */
     @property bool isStable() const
     {
@@ -168,10 +173,10 @@ struct SemVer
     }
 
     /**
-     * Compare this $(LREF SemVer) with the $(D other) $(LREF SemVer).
+     * Compare this $(D_PSYMBOL SemVer) with the $(D_PARAM other) $(D_PSYMBOL SemVer).
      *
      * Note that the build parts are considered for this operation.
-     * Please use $(LREF differenceAt) to find whether the versions differ only on the build part.
+     * Please use $(D_PSYMBOL differAt) to find whether the versions differ only on the build part.
      */
     int opCmp(ref const SemVer other) const
     in
@@ -226,10 +231,10 @@ struct SemVer
     }
 
     /**
-     * Check for equality between this $(LREF SemVer) and the $(D other) $(LREF SemVer).
+     * Check for equality between this $(D_PSYMBOL SemVer) and the $(D_PARAM other) $(D_PSYMBOL SemVer).
      *
      * Note that the build parts are considered for this operation.
-     * Please use $(LREF differenceAt) to find whether the versions differ only on the build part.
+     * Please use $(D_PSYMBOL differAt) to find whether the versions differ only on the build part.
      */
     bool opEquals(ref const SemVer other) const
     {
@@ -243,9 +248,9 @@ struct SemVer
     }
 
     /**
-     * Compare two <b>different</b> versions and return the parte they differ on.
+     * Compare two $(B different) versions and return the parte they differ on.
      */
-    VersionPart differenceAt(ref const SemVer other) const
+    VersionPart differAt(ref const SemVer other) const
     in
     {
         assert(this != other);
@@ -264,13 +269,13 @@ struct SemVer
         if (build != other.build)
             return VersionPart.BUILD;
 
-        assert(0, "Call 'differenceAt' for unequal versions only");
+        assert(0, "Call 'differAt' for unequal versions only");
     }
 
     /// ditto
-    VersionPart differenceAt(in SemVer other) const
+    VersionPart differAt(in SemVer other) const
     {
-        return this.differenceAt(other);
+        return this.differAt(other);
     }
 }
 
@@ -300,19 +305,16 @@ unittest
     assert(SemVer("1.0.0-rc.1") > SemVer("1.0.0-rc.1+build.5"));
     assert(SemVer("1.0.0-rc.1+build.5") == SemVer("1.0.0-rc.1+build.5"));
 
-    assert(SemVer("1.0.0").differenceAt(SemVer("2")) == VersionPart.MAJOR);
-    assert(SemVer("1.0.0").differenceAt(SemVer("1.1.1")) == VersionPart.MINOR);
-    assert(SemVer("1.0.0-rc.1").differenceAt(SemVer("1.0.1-rc.1")) == VersionPart.PATCH);
-    assert(SemVer("1.0.0-alpha").differenceAt(SemVer("1.0.0-beta")) == VersionPart.PRERELEASE);
-    assert(SemVer("1.0.0-rc.1").differenceAt(SemVer("1.0.0")) == VersionPart.PRERELEASE);
-    assert(SemVer("1.0.0-rc.1").differenceAt(SemVer("1.0.0-rc.1+build.5")) == VersionPart.BUILD);
+    assert(SemVer("1.0.0").differAt(SemVer("2")) == VersionPart.MAJOR);
+    assert(SemVer("1.0.0").differAt(SemVer("1.1.1")) == VersionPart.MINOR);
+    assert(SemVer("1.0.0-rc.1").differAt(SemVer("1.0.1-rc.1")) == VersionPart.PATCH);
+    assert(SemVer("1.0.0-alpha").differAt(SemVer("1.0.0-beta")) == VersionPart.PRERELEASE);
+    assert(SemVer("1.0.0-rc.1").differAt(SemVer("1.0.0")) == VersionPart.PRERELEASE);
+    assert(SemVer("1.0.0-rc.1").differAt(SemVer("1.0.0-rc.1+build.5")) == VersionPart.BUILD);
 }
 
 /**
- * Represent a semantic version range.
- *
- * See_Also:
- *    https://github.com/isaacs/node-semver
+ * Represent a semantic version range [~|~>|^|<|<=|=|>=|>]MAJOR[.MINOR[.PATCH]].
  */
 struct SemVerRange
 {
@@ -341,7 +343,7 @@ struct SemVerRange
     /**
      * Creates and validates a semantic version range from a string.
      *
-     * If string format is invalid it just sets the $(D isValid) property to $(D false).
+     * If string format is invalid it just sets the $(D_PARAM isValid) property to $(D_KEYWORD false).
      */
     this(string semVerRange)
     {
@@ -550,7 +552,7 @@ struct SemVerRange
     }
 
     /**
-     * Property that indicates whether this $(D SemVerRange) is valid.
+     * Property that indicates whether this $(D_PSYMBOL SemVerRange) is valid.
      */
     @property bool isValid() const
     {
@@ -586,7 +588,7 @@ struct SemVerRange
     }
 
     /**
-     * Check if the $(LREF SemVer) $(D semVer) satisfies this $(LREF SemVerRange).
+     * Check if the $(D_PSYMBOL SemVer) $(D_PARAM semVer) satisfies this $(D_PSYMBOL SemVerRange).
      */
     bool satisfiedBy(SemVer semVer)
     in
@@ -602,7 +604,7 @@ struct SemVerRange
 }
 
 /**
- * Check if the $(LREF SemVer) $(D semVer) satisfies $(LREF SemVerRange) $(D semVerRange).
+ * Check if the $(D_PSYMBOL SemVer) $(D_PARAM semVer) satisfies $(LREF SemVerRange) $(D_PARAM semVerRange).
  */
 bool satisfies(SemVer semVer, SemVerRange semVerRange)
 {
@@ -610,8 +612,8 @@ bool satisfies(SemVer semVer, SemVerRange semVerRange)
 }
 
 /**
- * Return the latest $(LREF Semver) from $(D semVers) array that satisfies
- * $(D semVerRange) $(LREF SemVerRange).
+ * Return the latest $(D_PSYMBOL Semver) from $(D_PARAM semVers) array that satisfies
+ * $(D_PARAM semVerRange) $(D_PSYMBOL SemVerRange).
  */
 SemVer maxSatisfying(SemVer[] semVers, SemVerRange semVerRange)
 in
