@@ -15,27 +15,29 @@ It uses the following formats:
 
 ## Usage
 
-    auto version = SemVer("1.0.0");
-    assert(version.isValid);
-    assert(version.isStable);
+```D
+auto version1 = SemVer("1.0.0");
+assert(version1.isValid);
+assert(version1.isStable);
 
-    auto version = SemVer("1.0.0-rc.1");
-    assert(version.isValid);
-    assert(!version.isStable);
+auto version2 = SemVer("1.0.0-rc.1");
+assert(version2.isValid);
+assert(!version2.isStable);
 
-    assert(SemVer("1.0.0") > SemVer("1.0.0+build.1"));
-    assert(SemVer("1.0.0").differAt(SemVer("1.0.0+build.1")) == VersionPart.BUILD);
+assert(SemVer("1.0.0") > SemVer("1.0.0+build.1"));
+assert(SemVer("1.0.0").differAt(SemVer("1.0.0+build.1")) == VersionPart.BUILD);
 
-    auto versionRange = SemVerRange(">=1.0.0");
-    assert(versionRange.isValid);
+auto versionRange = SemVerRange(">=1.0.0");
+assert(versionRange.isValid);
 
-    assert(SemVer("1.0.1").satisfies(version));
-    assert(SemVer("1.1.0").satisfies(version));
+assert(SemVer("1.0.1").satisfies(versionRange));
+assert(SemVer("1.1.0").satisfies(versionRange));
 
-    auto semVers = [SemVer("1.1.0"), SemVer("1.0.0"), SemVer("0.8.0")];
-    assert(semVers.maxSatisfying(SemVerRange("<=1.0.0")) == SemVer("1.0.0"));
-    assert(semVers.maxSatisfying(SemVerRange(">=1.0")) == SemVer("1.1.0"));
+auto semVers = [SemVer("1.1.0"), SemVer("1.0.0"), SemVer("0.8.0")];
+assert(semVers.maxSatisfying(SemVerRange("<=1.0.0")) == SemVer("1.0.0"));
+assert(semVers.maxSatisfying(SemVerRange(">=1.0")) == SemVer("1.1.0"));
 
-    semVers = [SemVer("1.0.0+build.3"), SemVer("1.0.0+build.1"), SemVer("1.1.0")];
-    assert(semVers.maxSatisfying(SemVerRange("<=1.0.0")) == SemVer("1.0.0+build.3"));
-    assert(semVers.maxSatisfying(SemVerRange(">=1.0")) == SemVer("1.1.0"));
+semVers = [SemVer("1.0.0+build.3"), SemVer("1.0.0+build.1"), SemVer("1.1.0")];
+assert(semVers.maxSatisfying(SemVerRange("<=1.0.0")) == SemVer("1.0.0+build.3"));
+assert(semVers.maxSatisfying(SemVerRange(">=1.0")) == SemVer("1.1.0"));
+```
