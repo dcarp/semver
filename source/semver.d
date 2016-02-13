@@ -282,6 +282,7 @@ struct SemVer
 
 unittest
 {
+    assert(!SemVer().isValid);
     assert(!SemVer("1.2-.alpha.32").isValid);
     assert(!SemVer("1.2-alpha+").isValid);
     assert(!SemVer("1.2-alpha_").isValid);
@@ -636,6 +637,7 @@ body
 
 unittest
 {
+    assert(!SemVerRange().isValid);
     assert(SemVerRange("1.x || >=2.5.0 || 5.0.0 - 7.2.3").isValid);
     assert(!SemVerRange("blerg").isValid);
     assert(!SemVerRange("git+https://user:password0123@github.com/foo").isValid);
