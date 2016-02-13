@@ -9,13 +9,7 @@
 module semver;
 
 import std.algorithm;
-import std.array;
-import std.conv;
-import std.exception;
 import std.range;
-import std.regex;
-import std.stdio;
-import std.string;
 
 /**
  * The version part of a version number.
@@ -45,8 +39,6 @@ struct SemVer
 
     private bool _isValid;
 
-    @disable this();
-
     /**
      * Creates and validates a version number from a string.
      *
@@ -54,6 +46,10 @@ struct SemVer
      */
     this(string semVer)
     {
+        import std.array : array;
+        import std.conv : to;
+        import std.regex : matchAll, regex;
+
         _isValid = false;
         if (semVer.empty)
             return;
@@ -93,6 +89,8 @@ struct SemVer
      */
     string toString() const
     {
+        import std.string : format;
+
         if (!_isValid)
             return "<invalid_semver>";
 
@@ -104,7 +102,7 @@ struct SemVer
         return semVer;
     }
 
-    deprecated("Please use semver.SemVer.isValid instead.")
+    deprecated("Please use `isValid` instead.")
     @property bool valid() const
     {
         return isValid;
@@ -126,7 +124,7 @@ struct SemVer
         return prerelease.empty;
     }
 
-    deprecated("Please use semver.SemVer.increment instead.")
+    deprecated("Please use `increment` instead.")
     SemVer inc(VersionPart versionPart) const
     {
         return increment(versionPart);
@@ -194,6 +192,9 @@ struct SemVer
 
         int compareSufix(const string[] suffix, const string[] anotherSuffix)
         {
+            import std.conv : to;
+            import std.string : isNumeric;
+
             if (!suffix.empty && anotherSuffix.empty)
                 return -1;
             if (suffix.empty && !anotherSuffix.empty)
@@ -338,8 +339,6 @@ struct SemVerRange
 
     private bool _isValid;
 
-    @disable this();
-
     /**
      * Creates and validates a semantic version range from a string.
      *
@@ -347,6 +346,10 @@ struct SemVerRange
      */
     this(string semVerRange)
     {
+        import std.exception : enforce;
+        import std.regex : matchFirst, regex;
+        import std.string : format, strip, stripLeft;
+
         _isValid = false;
         auto re = regex(`(~|~>|\^|<|<=|=|>=|>)?[v]?(\d+|\*|X|x)(?:\.(\d+|\*|X|x))?(?:\.(\d+|\*|X|x))?([\S]*)`);
 
@@ -507,6 +510,8 @@ struct SemVerRange
 
     private static string expand(string[4] semVer)
     {
+        import std.string : format;
+
         VersionPart wildcard = wildcardAt(semVer[0..3]);
         if (wildcard != VersionPart.PRERELEASE)
         {
@@ -539,6 +544,8 @@ struct SemVerRange
      */
     string toString() const
     {
+        import std.string : format;
+
         if (!_isValid)
             return "<invalid_semver_range>";
 
