@@ -152,7 +152,7 @@ struct SemVer
         return result;
     }
 
-    package SemVer appendPrerelease0()
+    private SemVer appendPrerelease0()
     {
         if (prerelease.empty)
             prerelease ~= "0";
