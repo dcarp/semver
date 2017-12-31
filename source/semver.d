@@ -102,12 +102,6 @@ struct SemVer
         return semVer;
     }
 
-    deprecated("Please use `isValid` instead.")
-    @property bool valid() const
-    {
-        return isValid;
-    }
-
     /**
      * Property that indicates whether this $(D_PSYMBOL SemVer) is valid.
      */
@@ -122,12 +116,6 @@ struct SemVer
     @property bool isStable() const
     {
         return prerelease.empty;
-    }
-
-    deprecated("Please use `increment` instead.")
-    SemVer inc(VersionPart versionPart) const
-    {
-        return increment(versionPart);
     }
 
     /**
@@ -551,12 +539,6 @@ struct SemVerRange
             return "<invalid_semver_range>";
 
         return "%(%(%s %) || %)".format(ranges);
-    }
-
-    deprecated("Please use semver.SemVerRange.isValid instead.")
-    @property bool valid() const
-    {
-        return isValid;
     }
 
     /**
