@@ -460,7 +460,7 @@ struct SemVerRange
                     {
                         ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
                         ranges[$-1] ~= SimpleRange("<", semVer.increment(VersionPart.MINOR).appendPrerelease0);
-                    } 
+                    }
                     else
                     {
                         ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
