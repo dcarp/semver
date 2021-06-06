@@ -26,7 +26,7 @@ enum VersionPart
     PRERELEASE,
     /** build suffix */
     BUILD,
-};
+}
 
 /**
  * Represent a semantic version number MAJOR[.MINOR[.PATCH]][-PRERELEASE][+BUILD].
