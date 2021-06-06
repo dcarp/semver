@@ -130,7 +130,7 @@ struct SemVer
     {
         assert(result.isValid);
     }
-    body
+    do
     {
         SemVer result = "0";
         foreach (i; VersionPart.MAJOR .. versionPart)
@@ -170,7 +170,7 @@ struct SemVer
         assert(this.isValid);
         assert(other.isValid);
     }
-    body
+    do
     {
         foreach (i; 0..ids.length)
         {
@@ -244,7 +244,7 @@ struct SemVer
     {
         assert(this != other);
     }
-    body
+    do
     {
         foreach (i; VersionPart.MAJOR .. VersionPart.PRERELEASE)
         {
@@ -556,7 +556,7 @@ struct SemVerRange
         assert(["<", "<=", "=", ">=", ">"].canFind(simpleRange.op));
         assert(simpleRange.semVer.isValid);
     }
-    body
+    do
     {
         semVer.build = null;
 
@@ -586,7 +586,7 @@ struct SemVerRange
         assert(semVer.isValid);
         assert(isValid);
     }
-    body
+    do
     {
         return ranges.any!(r => r.all!(s => simpleRangeSatisfiedBy(s, semVer)));
     }
@@ -611,7 +611,7 @@ in
     assert(semVers.all!"a.isValid");
     assert(semVerRange.isValid);
 }
-body
+do
 {
     auto found = semVers.sort!"a > b".find!(a => satisfies(a, semVerRange));
     return found.empty ? SemVer("invalid") : found[0];
