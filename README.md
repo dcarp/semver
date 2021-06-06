@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/dcarp/semver.png)](https://travis-ci.org/dcarp/semver)
+[![Build Status](https://github.com/dcarp/semver/workflows/CI/badge.svg)](https://github.com/dcarp/semver/actions?workflow=CI)
 
 semver
 ======
