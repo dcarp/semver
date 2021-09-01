@@ -214,7 +214,7 @@ struct SemVer
     }
 
     /// ditto
-    int opCmp(in SemVer other) const
+    int opCmp(const SemVer other) const
     {
         return this.opCmp(other);
     }
@@ -231,7 +231,7 @@ struct SemVer
     }
 
     /// ditto
-    bool opEquals(in SemVer other) const
+    bool opEquals(const SemVer other) const
     {
         return this.opEquals(other);
     }
@@ -262,7 +262,7 @@ struct SemVer
     }
 
     /// ditto
-    VersionPart differAt(in SemVer other) const
+    VersionPart differAt(const SemVer other) const
     {
         return this.differAt(other);
     }
