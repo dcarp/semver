@@ -1,9 +1,33 @@
 /**
- * License: <a href="http://opensource.org/licenses/MIT">MIT</a>.
+ * Provide utilities to represent & manipulate versions and version ranges
+ * following the Semantic Versioning 2.0 specifications.
+ *
+ * Semantic versioning define a syntax and a semantic to represent version
+ * numbers, composed of five `VersionPart`.
+ * Each difference in `VersionPart` represent a different expectation
+ * with regards to the scope of the difference between two versions.
+ *
+ * `VersionPart.MAJOR` can differ in any way and are not considered to
+ * be compatible with one another.
+ * `VersionPart.MINOR` do not contain breaking changes but can contain new features,
+ * hence newer versions are backward compatible but not forward compatible.
+ * `VersionPart.PATCH` are both forward and backward compatible.
+ * `VersionPart.PRERELEASE` are preview versions of their non-prerelease
+ * counterpart, while `VersionPart.BUILD` are metadata without influence
+ * on the version matching.
+ *
+ * In addition to the `SemVer` type to represent versions, a `SemVerRange`
+ * type exists to express version constraints.
+ *
+ * For more information about SemVer, rules and practice,
+ * see [the official website](https://semver.org).
+ *
+ * License: [MIT](http://opensource.org/licenses/MIT)
  * Authors: Dragos Carp
  *
- * See_Also: <a href="http://semver.org">Semantic Versioning 2.0</a>,
- * <a href="https://github.com/isaacs/node-semver">The semantic versioner for npm</a>
+ * See_Also:
+ * - [Semantic Versioning 2.0](http://semver.org)
+ * - [The semantic versioner for npm](https://github.com/isaacs/node-semver)
  */
 
 module semver;
@@ -12,7 +36,7 @@ import std.algorithm;
 import std.range;
 
 /**
- * The version part of a version number.
+ * The different components of a version number.
  */
 enum VersionPart
 {
@@ -29,7 +53,13 @@ enum VersionPart
 }
 
 /**
- * Represent a semantic version number MAJOR[.MINOR[.PATCH]][-PRERELEASE][+BUILD].
+ * Represent a semantic version number
+ *
+ * Semantic versions are usually represented as string as:
+ * `MAJOR[.MINOR[.PATCH]][-PRERELEASE][+BUILD]`.
+ * For ease of use, a leading `v` or a leading `=` are also accepted.
+ * Invalid input to the constructor will not throw, but the version
+ * will be marked as invalid. This can be checked via `isValid`.
  */
 struct SemVer
 {
