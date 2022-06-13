@@ -34,6 +34,7 @@ module semver;
 
 import std.algorithm;
 import std.range;
+import std.regex : matchAll, matchFirst, ctRegex;
 
 /**
  * The different components of a version number.
@@ -69,6 +70,9 @@ struct SemVer
 
     private bool _isValid;
 
+    private static immutable RegExp = ctRegex!(
+        `^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-([a-zA-Z\d-.]+))?(?:\+([a-zA-Z\d-.]+))?$`);
+
     /**
      * Creates and validates a version number from a string.
      *
@@ -78,15 +82,13 @@ struct SemVer
     {
         import std.array : array;
         import std.conv : to;
-        import std.regex : matchAll, regex;
 
         if (semVer.empty)
             return;
         if (!semVer.skipOver('v'))
             semVer.skipOver('=');
 
-        auto re = regex(`^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-([a-zA-Z\d-.]+))?(?:\+([a-zA-Z\d-.]+))?$`);
-        auto m = semVer.matchAll(re);
+        auto m = semVer.matchAll(RegExp);
         if (m.empty)
             return;
 
@@ -337,6 +339,9 @@ unittest
  */
 struct SemVerRange
 {
+    private static immutable RegExp = ctRegex!(
+        `(~|~>|\^|<|<=|=|>=|>)?[v]?(\d+|\*|X|x)(?:\.(\d+|\*|X|x))?(?:\.(\d+|\*|X|x))?([\S]*)`);
+
     private struct SimpleRange
     {
         string op;
@@ -365,16 +370,13 @@ struct SemVerRange
     this(string semVerRange)
     {
         import std.exception : enforce;
-        import std.regex : matchFirst, regex;
         import std.string : format, strip, stripLeft;
-
-        auto re = regex(`(~|~>|\^|<|<=|=|>=|>)?[v]?(\d+|\*|X|x)(?:\.(\d+|\*|X|x))?(?:\.(\d+|\*|X|x))?([\S]*)`);
 
         ranges = [SimpleRange[].init];
 
         while (!semVerRange.stripLeft.empty)
         {
-            auto m = semVerRange.matchFirst(re);
+            auto m = semVerRange.matchFirst(RegExp);
             if (m.empty)
                 return;
 
