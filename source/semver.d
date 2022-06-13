@@ -105,7 +105,7 @@ struct SemVer
     /**
      * Property that indicates whether this $(D_PSYMBOL SemVer) is valid.
      */
-    @property bool isValid() const
+    bool isValid() const
     {
         return _isValid;
     }
@@ -113,7 +113,7 @@ struct SemVer
     /**
      * Property that indicates whether this $(D_PSYMBOL SemVer) is stable.
      */
-    @property bool isStable() const
+    bool isStable() const
     {
         return prerelease.empty;
     }
@@ -544,7 +544,7 @@ struct SemVerRange
     /**
      * Property that indicates whether this $(D_PSYMBOL SemVerRange) is valid.
      */
-    @property bool isValid() const
+    bool isValid() const
     {
         return _isValid;
     }
