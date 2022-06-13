@@ -356,6 +356,8 @@ struct SemVerRange
     private static immutable RegExp = ctRegex!(
         `(~|~>|\^|<|<=|=|>=|>)?[v]?(\d+|\*|X|x)(?:\.(\d+|\*|X|x))?(?:\.(\d+|\*|X|x))?([\S]*)`);
 
+    private static immutable Wildcards = [ "", "*", "X", "x" ];
+
     private struct SimpleRange
     {
         string op;
@@ -524,7 +526,7 @@ struct SemVerRange
     {
         foreach (i; VersionPart.MAJOR..VersionPart.PRERELEASE)
         {
-            if (["", "*", "X", "x"].canFind(semVer[i]))
+            if (Wildcards.canFind(semVer[i]))
                 return i;
         }
         return VersionPart.PRERELEASE;
@@ -548,7 +550,7 @@ struct SemVerRange
         VersionPart wildcard = wildcardAt(semVer[0..3]);
         if (wildcard != VersionPart.PRERELEASE)
         {
-            if (semVer[wildcard+1..$].any!`!["", "*", "X", "x"].canFind(a)`)
+            if (semVer[wildcard+1..$].any!((a) => !Wildcards.canFind(a)))
                 return "";
             foreach (j; wildcard..VersionPart.PRERELEASE)
                 semVer[j] = "0";
