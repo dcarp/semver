@@ -80,7 +80,6 @@ struct SemVer
         import std.conv : to;
         import std.regex : matchAll, regex;
 
-        _isValid = false;
         if (semVer.empty)
             return;
         if (!semVer.skipOver('v'))
@@ -369,7 +368,6 @@ struct SemVerRange
         import std.regex : matchFirst, regex;
         import std.string : format, strip, stripLeft;
 
-        _isValid = false;
         auto re = regex(`(~|~>|\^|<|<=|=|>=|>)?[v]?(\d+|\*|X|x)(?:\.(\d+|\*|X|x))?(?:\.(\d+|\*|X|x))?([\S]*)`);
 
         ranges = [SimpleRange[].init];
