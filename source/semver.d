@@ -116,6 +116,18 @@ struct SemVer
     }
 
     /**
+     * Creates a 'simple' version with only major, minor, patch components
+     */
+    public this (uint major, uint minor = 0, uint patch = 0)
+        @safe pure nothrow @nogc
+    {
+        this.ids[VersionPart.MAJOR] = major;
+        this.ids[VersionPart.MINOR] = minor;
+        this.ids[VersionPart.PATCH] = patch;
+        this._isValid = true;
+    }
+
+    /**
      * Return the canonical string format.
      */
     string toString() const
@@ -163,7 +175,7 @@ struct SemVer
     }
     do
     {
-        SemVer result = "0";
+        SemVer result = SemVer(0);
         foreach (i; VersionPart.MAJOR .. versionPart)
             result.ids[i] = this.ids[i];
         if (versionPart != VersionPart.PRERELEASE)
