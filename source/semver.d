@@ -78,15 +78,17 @@ struct SemVer
      *
      * If string format is invalid it just sets the $(D_PARAM isValid) property to $(D_KEYWORD false).
      */
-    this(string semVer)
+    this(string semVer) @safe
     {
         import std.array : array;
         import std.conv : to;
 
-        if (semVer.empty)
+        if (semVer.length == 0)
             return;
-        if (!semVer.skipOver('v'))
-            semVer.skipOver('=');
+        if (semVer[0] == 'v')
+            semVer = semVer[1 .. $];
+        else if (semVer[0] == '=')
+            semVer = semVer[1 .. $];
 
         auto m = semVer.matchAll(RegExp);
         if (m.empty)
@@ -130,7 +132,7 @@ struct SemVer
     /**
      * Return the canonical string format.
      */
-    string toString() const
+    string toString() const scope @safe
     {
         import std.string : format;
 
@@ -148,7 +150,7 @@ struct SemVer
     /**
      * Property that indicates whether this $(D_PSYMBOL SemVer) is valid.
      */
-    bool isValid() const
+    bool isValid() const scope @safe pure nothrow @nogc
     {
         return _isValid;
     }
@@ -156,7 +158,7 @@ struct SemVer
     /**
      * Property that indicates whether this $(D_PSYMBOL SemVer) is stable.
      */
-    bool isStable() const
+    bool isStable() const scope @safe pure nothrow @nogc
     {
         return prerelease.empty;
     }
@@ -164,7 +166,7 @@ struct SemVer
     /**
      * Increment version number.
      */
-    SemVer increment(VersionPart versionPart) const
+    SemVer increment(VersionPart versionPart) const scope @safe pure nothrow @nogc
     in
     {
         assert(this.isValid);
@@ -183,7 +185,7 @@ struct SemVer
         return result;
     }
 
-    private SemVer appendPrerelease0()
+    private SemVer appendPrerelease0() scope @safe pure nothrow
     {
         if (prerelease.empty)
             prerelease ~= "0";
@@ -207,7 +209,7 @@ struct SemVer
      * Note that the build parts are considered for this operation.
      * Please use $(D_PSYMBOL differAt) to find whether the versions differ only on the build part.
      */
-    int opCmp(ref const SemVer other) const
+    int opCmp(ref const SemVer other) const scope @safe pure
     in
     {
         assert(this.isValid);
@@ -221,7 +223,7 @@ struct SemVer
                 return ids[i] < other.ids[i] ? -1 : 1;
         }
 
-        int compareSufix(const string[] suffix, const string[] anotherSuffix)
+        int compareSufix(const string[] suffix, const string[] anotherSuffix) @safe pure
         {
             import std.conv : to;
             import std.string : isNumeric;
@@ -231,7 +233,7 @@ struct SemVer
             if (suffix.empty && !anotherSuffix.empty)
                 return 1;
 
-            foreach (a, b; lockstep(suffix, anotherSuffix))
+            foreach (a, b; zip(suffix, anotherSuffix))
             {
                 if (a.isNumeric && b.isNumeric)
                 {
@@ -257,7 +259,7 @@ struct SemVer
     }
 
     /// ditto
-    int opCmp(const SemVer other) const
+    int opCmp(const SemVer other) const scope @safe pure
     {
         return this.opCmp(other);
     }
@@ -268,13 +270,13 @@ struct SemVer
      * Note that the build parts are considered for this operation.
      * Please use $(D_PSYMBOL differAt) to find whether the versions differ only on the build part.
      */
-    bool opEquals(ref const SemVer other) const
+    bool opEquals(ref const SemVer other) const scope @safe pure
     {
         return this.opCmp(other) == 0;
     }
 
     /// ditto
-    bool opEquals(const SemVer other) const
+    bool opEquals(const SemVer other) const scope @safe pure
     {
         return this.opEquals(other);
     }
@@ -282,7 +284,7 @@ struct SemVer
     /**
      * Compare two $(B different) versions and return the parte they differ on.
      */
-    VersionPart differAt(ref const SemVer other) const
+    VersionPart differAt(ref const SemVer other) const scope @safe pure nothrow
     in
     {
         assert(this != other);
@@ -305,7 +307,7 @@ struct SemVer
     }
 
     /// ditto
-    VersionPart differAt(const SemVer other) const
+    VersionPart differAt(const SemVer other) const scope @safe pure nothrow
     {
         return this.differAt(other);
     }
@@ -586,7 +588,7 @@ struct SemVerRange
     /**
      * Property that indicates whether this $(D_PSYMBOL SemVerRange) is valid.
      */
-    bool isValid() const
+    bool isValid() const scope @safe pure nothrow @nogc
     {
         return _isValid;
     }
