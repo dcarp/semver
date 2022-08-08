@@ -245,6 +245,53 @@ struct SemVer
     }
 
     /**
+     * Query a possibly decoded PRERELEASE and BUILD string
+     */
+    string queryAsString(VersionPart versionPart) const
+    in
+    {
+        assert(this.isValid);
+    }
+    do
+    {
+        import std.conv : to;
+        import std.exception : enforce;
+        string result;
+        switch (versionPart)
+        {
+        case VersionPart.MAJOR:
+            result = ids[0].to!string;
+            break;
+        case VersionPart.MINOR:
+            result = ids[1].to!string;
+            break;
+        case VersionPart.PATCH:
+            result = ids[2].to!string;
+            break;
+        case VersionPart.PRERELEASE:
+            result = prerelease.join(".");
+            break;
+        case VersionPart.BUILD:
+            result = build.join(".");
+            break;
+        default:
+            enforce(false, "Can't query unknown " ~ versionPart.to!string ~ " as a string.");
+            break;
+        }
+        return result;
+    }
+
+    unittest
+    {
+        import std.exception : assertThrown;
+        assert(SemVer("1.2.3").queryAsString(VersionPart.MAJOR) == "1");
+        assert(SemVer("1.2.3").queryAsString(VersionPart.MINOR) == "2");
+        assert(SemVer("1.2.3").queryAsString(VersionPart.PATCH) == "3");
+        assert(SemVer("1.2.3-alpha-beta.2+build-seq.3").queryAsString(VersionPart.PRERELEASE) == "alpha-beta.2");
+        assert(SemVer("1.2.3-alpha-beta.2+build-seq.3").queryAsString(VersionPart.BUILD) == "build-seq.3");
+    }
+
+    /**
      * Compare this $(D_PSYMBOL SemVer) with the $(D_PARAM other) $(D_PSYMBOL SemVer).
      *
      * Note that the build parts are considered for this operation.
