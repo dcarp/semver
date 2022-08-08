@@ -204,6 +204,47 @@ struct SemVer
     }
 
     /**
+     * Query a Major, Minor and Patch as integers
+     */
+    int query(VersionPart versionPart) const
+    in
+    {
+        assert(this.isValid);
+    }
+    do
+    {
+        import std.conv : to;
+        import std.exception : enforce;
+        int result;
+        switch (versionPart)
+        {
+        case VersionPart.MAJOR:
+            result = ids[0];
+            break;
+        case VersionPart.MINOR:
+            result = ids[1];
+            break;
+        case VersionPart.PATCH:
+            result = ids[2];
+            break;
+        default:
+            enforce(false, "Can't query " ~ versionPart.to!string ~ " as an integer.");
+            break;
+        }
+        return result;
+    }
+
+    unittest
+    {
+        import std.exception : assertThrown;
+        assert(SemVer("1.2.3").query(VersionPart.MAJOR) == 1);
+        assert(SemVer("1.2.3").query(VersionPart.MINOR) == 2);
+        assert(SemVer("1.2.3").query(VersionPart.PATCH) == 3);
+        assertThrown(SemVer("1.2.3-alpha").query(VersionPart.BUILD));
+        assertThrown(SemVer("1.2.3-alpha+build").query(VersionPart.PRERELEASE));
+    }
+
+    /**
      * Compare this $(D_PSYMBOL SemVer) with the $(D_PARAM other) $(D_PSYMBOL SemVer).
      *
      * Note that the build parts are considered for this operation.
