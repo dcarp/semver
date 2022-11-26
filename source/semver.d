@@ -141,9 +141,9 @@ struct SemVer
 
         string semVer = "%(%s.%)".format(ids);
         if (!prerelease.empty)
-            semVer ~= "-" ~ "%-(%s.%)".format(prerelease);
+            semVer ~= "-" ~ "%-(%s.%)".format(cast(const char[]) prerelease);
         if (!build.empty)
-            semVer ~= "+" ~ "%-(%s.%)".format(build);
+            semVer ~= "+" ~ "%-(%s.%)".format(cast(const char[]) build);
         return semVer;
     }
 
