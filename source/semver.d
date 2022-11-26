@@ -311,7 +311,7 @@ struct SemVer
                 return ids[i] < other.ids[i] ? -1 : 1;
         }
 
-        int compareSufix(const string[] suffix, const string[] anotherSuffix) @safe pure
+        int compareSufix(scope const string[] suffix, const string[] anotherSuffix) @safe pure
         {
             import std.conv : to;
             import std.string : isNumeric;
