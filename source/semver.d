@@ -372,7 +372,7 @@ struct SemVer
     /**
      * Compare two $(B different) versions and return the parte they differ on.
      */
-    VersionPart differAt(ref const SemVer other) const scope @safe pure nothrow
+    VersionPart differAt(ref const SemVer other) const scope @safe pure
     in
     {
         assert(this != other);
@@ -395,7 +395,7 @@ struct SemVer
     }
 
     /// ditto
-    VersionPart differAt(const SemVer other) const scope @safe pure nothrow
+    VersionPart differAt(const SemVer other) const scope @safe pure
     {
         return this.differAt(other);
     }
