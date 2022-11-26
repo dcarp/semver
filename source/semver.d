@@ -185,7 +185,7 @@ struct SemVer
         return result;
     }
 
-    private SemVer appendPrerelease0() scope @safe pure nothrow
+    private SemVer appendPrerelease0() return scope @safe pure nothrow
     {
         if (prerelease.empty)
             prerelease ~= "0";
