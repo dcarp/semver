@@ -141,9 +141,9 @@ struct SemVer
 
         string semVer = "%(%s.%)".format(ids);
         if (!prerelease.empty)
-            semVer ~= "-" ~ "%-(%s.%)".format(prerelease);
+            semVer ~= "-" ~ "%-(%s.%)".format(cast(const char[]) prerelease);
         if (!build.empty)
-            semVer ~= "+" ~ "%-(%s.%)".format(build);
+            semVer ~= "+" ~ "%-(%s.%)".format(cast(const char[]) build);
         return semVer;
     }
 
@@ -185,7 +185,7 @@ struct SemVer
         return result;
     }
 
-    private SemVer appendPrerelease0() scope @safe pure nothrow
+    private SemVer appendPrerelease0() return scope @safe pure nothrow
     {
         if (prerelease.empty)
             prerelease ~= "0";
@@ -311,7 +311,7 @@ struct SemVer
                 return ids[i] < other.ids[i] ? -1 : 1;
         }
 
-        int compareSufix(const string[] suffix, const string[] anotherSuffix) @safe pure
+        int compareSufix(scope const string[] suffix, const string[] anotherSuffix) @safe pure
         {
             import std.conv : to;
             import std.string : isNumeric;
@@ -372,7 +372,7 @@ struct SemVer
     /**
      * Compare two $(B different) versions and return the parte they differ on.
      */
-    VersionPart differAt(ref const SemVer other) const scope @safe pure nothrow
+    VersionPart differAt(ref const SemVer other) const scope @safe pure
     in
     {
         assert(this != other);
@@ -395,7 +395,7 @@ struct SemVer
     }
 
     /// ditto
-    VersionPart differAt(const SemVer other) const scope @safe pure nothrow
+    VersionPart differAt(const SemVer other) const scope @safe pure
     {
         return this.differAt(other);
     }
