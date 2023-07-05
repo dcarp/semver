@@ -130,6 +130,60 @@ struct SemVer
     }
 
     /**
+     * Return major part of the version
+     */
+    auto major() const scope @safe pure nothrow @nogc
+    in
+    {
+        assert(this.isValid);
+    }
+    do {
+        return this.ids[VersionPart.MAJOR];
+    }
+
+    /**
+     * Return minor part of the version
+     */
+    auto minor() const scope @safe pure nothrow @nogc
+    in
+    {
+        assert(this.isValid);
+    }
+    do {
+        return this.ids[VersionPart.MINOR];
+    }
+
+    /**
+     * Return patch part of the version
+     */
+    auto patch() const scope @safe pure nothrow @nogc
+    in
+    {
+        assert(this.isValid);
+    }
+    do {
+        return this.ids[VersionPart.PATCH];
+    }
+
+    @safe unittest
+    {
+        const auto v = SemVer("1.2.3-alpha");
+        assert(v.major == 1);
+        assert(v.minor == 2);
+        assert(v.patch == 3);
+
+        const auto v2 = SemVer("2");
+        assert(v2.major == 2);
+        assert(v2.minor == 0);
+        assert(v2.patch == 0);
+
+        const auto v3 = SemVer("0.2");
+        assert(v3.major == 0);
+        assert(v3.minor == 2);
+        assert(v3.patch == 0);
+    }
+
+    /**
      * Return the canonical string format.
      */
     string toString() const scope @safe
