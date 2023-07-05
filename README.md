@@ -24,6 +24,11 @@ auto version2 = SemVer("1.0.0-rc.1");
 assert(version2.isValid);
 assert(!version2.isStable);
 
+auto version3 = Semver("1.2.3-rc.42");
+assert(version3.major == 1);
+assert(version3.minor == 2);
+assert(version3.patch == 3);
+
 assert(SemVer("1.0.0") > SemVer("1.0.0+build.1"));
 assert(SemVer("1.0.0").differAt(SemVer("1.0.0+build.1")) == VersionPart.BUILD);
 
