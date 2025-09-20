@@ -9,6 +9,9 @@ jobs:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         dc: [ dmd-latest, ldc-latest ]
+        exclude:
+          - os: macos-latest
+            dc: dmd-latest  # dmd is not available on macOS ARM runners
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
