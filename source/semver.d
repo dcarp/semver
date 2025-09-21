@@ -222,6 +222,8 @@ struct SemVer
 
     /**
      * Increment version number.
+     * Increment of PRERELEASE or BUILD parts truncates the version to
+     * MAJOR.MINOR.PATCH form.
      */
     SemVer increment(VersionPart versionPart) const scope @safe pure nothrow @nogc
     in
@@ -235,9 +237,9 @@ struct SemVer
     do
     {
         SemVer result = SemVer(0);
-        foreach (i; VersionPart.MAJOR .. versionPart)
+        foreach (i; VersionPart.MAJOR .. min(versionPart, VersionPart.PATCH) + 1)
             result.ids[i] = this.ids[i];
-        if (versionPart != VersionPart.PRERELEASE)
+        if (versionPart <= VersionPart.PATCH)
             result.ids[versionPart] = this.ids[versionPart] + 1;
         return result;
     }
@@ -258,6 +260,7 @@ struct SemVer
         assert(SemVer("1.2.3-alpha").increment(VersionPart.PATCH) == SemVer("1.2.4"));
         assert(SemVer("1.2.3").increment(VersionPart.PRERELEASE) == SemVer("1.2.3"));
         assert(SemVer("1.2.3-alpha").increment(VersionPart.PRERELEASE) == SemVer("1.2.3"));
+        assert(SemVer("1.2.3+20").increment(VersionPart.BUILD) == SemVer("1.2.3"));
     }
 
     /**
