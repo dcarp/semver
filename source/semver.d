@@ -1,25 +1,25 @@
 /**
- * Provide utilities to represent & manipulate versions and version ranges
- * following the Semantic Versioning 2.0 specifications.
+ * Provides utilities to represent and manipulate versions and version ranges
+ * following the Semantic Versioning 2.0 specification.
  *
- * Semantic versioning define a syntax and a semantic to represent version
- * numbers, composed of five `VersionPart`.
- * Each difference in `VersionPart` represent a different expectation
+ * Semantic versioning defines a syntax and semantics to represent version
+ * numbers, composed of three parts: MAJOR, MINOR, and PATCH and two additional
+ * optional parts: PRERELEASE and BUILD.
+ * Each difference in one part represents a different expectation
  * with regards to the scope of the difference between two versions.
  *
- * `VersionPart.MAJOR` can differ in any way and are not considered to
- * be compatible with one another.
- * `VersionPart.MINOR` do not contain breaking changes but can contain new features,
+ * Versions differing in MAJOR are not considered compatible.
+ * MINOR do not contain breaking changes but can contain new features,
  * hence newer versions are backward compatible but not forward compatible.
- * `VersionPart.PATCH` are both forward and backward compatible.
- * `VersionPart.PRERELEASE` are preview versions of their non-prerelease
- * counterpart, while `VersionPart.BUILD` are metadata without influence
- * on the version matching.
+ * PATCH changes are both forward and backward compatible.
+ * PRERELEASE is a preview version of its non-prerelease
+ * counterpart, while BUILD is metadata without influence
+ * on version matching.
  *
  * In addition to the `SemVer` type to represent versions, a `SemVerRange`
  * type exists to express version constraints.
  *
- * For more information about SemVer, rules and practice,
+ * For more information about SemVer's rules and practices
  * see [the official website](https://semver.org).
  *
  * License: [MIT](http://opensource.org/licenses/MIT)
@@ -37,7 +37,7 @@ import std.range;
 import std.regex : matchAll, matchFirst, ctRegex;
 
 /**
- * The different components of a version number.
+ * The different parts of a version number.
  */
 enum VersionPart
 {
@@ -54,13 +54,13 @@ enum VersionPart
 }
 
 /**
- * Represent a semantic version number
+ * Represents a semantic version.
  *
- * Semantic versions are usually represented as string as:
+ * Semantic versions are usually represented as a string:
  * `MAJOR[.MINOR[.PATCH]][-PRERELEASE][+BUILD]`.
- * For ease of use, a leading `v` or a leading `=` are also accepted.
+ * For ease of use, a leading `v` or `=` is also accepted.
  * Invalid input to the constructor will not throw, but the version
- * will be marked as invalid. This can be checked via `isValid`.
+ * will be marked as invalid. This can be checked via the `isValid` property.
  */
 struct SemVer
 {
@@ -96,8 +96,8 @@ struct SemVer
 
         foreach (i, ref id; ids)
         {
-            if (!m.captures[i+1].empty)
-                id = m.captures[i+1].to!uint;
+            if (!m.captures[i + 1].empty)
+                id = m.captures[i + 1].to!uint;
         }
 
         if (!m.captures[4].empty)
@@ -120,8 +120,8 @@ struct SemVer
     /**
      * Creates a 'simple' version with only major, minor, patch components
      */
-    public this (uint major, uint minor = 0, uint patch = 0)
-        @safe pure nothrow @nogc
+    public this(uint major, uint minor = 0, uint patch = 0)
+    @safe pure nothrow @nogc
     {
         this.ids[VersionPart.MAJOR] = major;
         this.ids[VersionPart.MINOR] = minor;
@@ -137,7 +137,8 @@ struct SemVer
     {
         assert(this.isValid);
     }
-    do {
+    do
+    {
         return this.ids[VersionPart.MAJOR];
     }
 
@@ -149,7 +150,8 @@ struct SemVer
     {
         assert(this.isValid);
     }
-    do {
+    do
+    {
         return this.ids[VersionPart.MINOR];
     }
 
@@ -161,7 +163,8 @@ struct SemVer
     {
         assert(this.isValid);
     }
-    do {
+    do
+    {
         return this.ids[VersionPart.PATCH];
     }
 
@@ -225,7 +228,7 @@ struct SemVer
     {
         assert(this.isValid);
     }
-    out(result)
+    out (result)
     {
         assert(result.isValid);
     }
@@ -235,7 +238,7 @@ struct SemVer
         foreach (i; VersionPart.MAJOR .. versionPart)
             result.ids[i] = this.ids[i];
         if (versionPart != VersionPart.PRERELEASE)
-            result.ids[versionPart] = this.ids[versionPart]+1;
+            result.ids[versionPart] = this.ids[versionPart] + 1;
         return result;
     }
 
@@ -269,6 +272,7 @@ struct SemVer
     {
         import std.conv : to;
         import std.exception : enforce;
+
         int result;
         switch (versionPart)
         {
@@ -291,6 +295,7 @@ struct SemVer
     unittest
     {
         import std.exception : assertThrown;
+
         assert(SemVer("1.2.3").query(VersionPart.MAJOR) == 1);
         assert(SemVer("1.2.3").query(VersionPart.MINOR) == 2);
         assert(SemVer("1.2.3").query(VersionPart.PATCH) == 3);
@@ -310,6 +315,7 @@ struct SemVer
     {
         import std.conv : to;
         import std.exception : enforce;
+
         string result;
         switch (versionPart)
         {
@@ -338,11 +344,14 @@ struct SemVer
     unittest
     {
         import std.exception : assertThrown;
+
         assert(SemVer("1.2.3").queryAsString(VersionPart.MAJOR) == "1");
         assert(SemVer("1.2.3").queryAsString(VersionPart.MINOR) == "2");
         assert(SemVer("1.2.3").queryAsString(VersionPart.PATCH) == "3");
-        assert(SemVer("1.2.3-alpha-beta.2+build-seq.3").queryAsString(VersionPart.PRERELEASE) == "alpha-beta.2");
-        assert(SemVer("1.2.3-alpha-beta.2+build-seq.3").queryAsString(VersionPart.BUILD) == "build-seq.3");
+        assert(SemVer("1.2.3-alpha-beta.2+build-seq.3")
+                .queryAsString(VersionPart.PRERELEASE) == "alpha-beta.2");
+        assert(SemVer("1.2.3-alpha-beta.2+build-seq.3")
+                .queryAsString(VersionPart.BUILD) == "build-seq.3");
     }
 
     /**
@@ -359,7 +368,7 @@ struct SemVer
     }
     do
     {
-        foreach (i; 0..ids.length)
+        foreach (i; 0 .. ids.length)
         {
             if (ids[i] != other.ids[i])
                 return ids[i] < other.ids[i] ? -1 : 1;
@@ -498,7 +507,7 @@ struct SemVerRange
     private static immutable RegExp = ctRegex!(
         `(~|~>|\^|<|<=|=|>=|>)?[v]?(\d+|\*|X|x)(?:\.(\d+|\*|X|x))?(?:\.(\d+|\*|X|x))?([\S]*)`);
 
-    private static immutable Wildcards = [ "", "*", "X", "x" ];
+    private static immutable Wildcards = ["", "*", "X", "x"];
 
     private struct SimpleRange
     {
@@ -513,7 +522,7 @@ struct SemVerRange
 
     private SimpleRange[][] ranges;
 
-    invariant()
+    invariant ()
     {
         assert(ranges.all!(r => r.all!(r => ["<", "<=", "=", ">=", ">"].canFind(r.op))));
     }
@@ -539,8 +548,12 @@ struct SemVerRange
                 return;
 
             auto operator = m.captures[1];
-            auto wildcard = wildcardAt([m.captures[2], m.captures[3], m.captures[4]]);
-            auto expanded = expand([m.captures[2], m.captures[3], m.captures[4], m.captures[5]]);
+            auto wildcard = wildcardAt([
+                m.captures[2], m.captures[3], m.captures[4]
+            ]);
+            auto expanded = expand([
+                m.captures[2], m.captures[3], m.captures[4], m.captures[5]
+            ]);
             if (expanded.empty)
                 return;
 
@@ -550,114 +563,118 @@ struct SemVerRange
 
             switch (m.captures.pre.strip)
             {
-                case "":
-                    break;
-                case "-":
-                    if (ranges[$-1].empty || ranges[$-1][$-1].op != "=" ||
-                        operator != "" || wildcard != VersionPart.PRERELEASE)
-                        return;
-                    ranges[$-1][$-1].op = ">=";
-                    operator = "<=";
-                    break;
-                case "||":
-                    ranges ~= SimpleRange[].init;
-                    break;
-                default:
+            case "":
+                break;
+            case "-":
+                if (ranges[$ - 1].empty || ranges[$ - 1][$ - 1].op != "=" ||
+                    operator != "" || wildcard != VersionPart.PRERELEASE)
                     return;
+                ranges[$ - 1][$ - 1].op = ">=";
+                operator = "<=";
+                break;
+            case "||":
+                ranges ~= SimpleRange[].init;
+                break;
+            default:
+                return;
             }
 
             switch (operator)
             {
-                case "":
-                case "=":
-                    final switch (wildcard)
-                    {
-                        case VersionPart.MAJOR:
-                            assert(semVer == SemVer("0.0.0"));
-                            ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
-                            break;
-                        case VersionPart.MINOR:
-                        case VersionPart.PATCH:
-                            ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
-                            ranges[$-1] ~= SimpleRange("<", semVer.increment(--wildcard).appendPrerelease0);
-                            break;
-                        case VersionPart.PRERELEASE:
-                            ranges[$-1] ~= SimpleRange("=", semVer);
-                            break;
-                        case VersionPart.BUILD:
-                            assert(0, "Unexpected build part wildcard");
-                    }
+            case "":
+            case "=":
+                final switch (wildcard)
+                {
+                case VersionPart.MAJOR:
+                    assert(semVer == SemVer("0.0.0"));
+                    ranges[$ - 1] ~= SimpleRange(">=", semVer.appendPrerelease0);
                     break;
-                case "<":
-                    ranges[$-1] ~= SimpleRange(operator, semVer.appendPrerelease0);
+                case VersionPart.MINOR:
+                case VersionPart.PATCH:
+                    ranges[$ - 1] ~= SimpleRange(">=", semVer.appendPrerelease0);
+                    ranges[$ - 1] ~= SimpleRange("<", semVer.increment(--wildcard)
+                            .appendPrerelease0);
                     break;
-                case "<=":
-                case ">=":
-                case ">":
-                    if (wildcard < VersionPart.PRERELEASE)
-                        semVer.appendPrerelease0;
-                    ranges[$-1] ~= SimpleRange(operator, semVer);
+                case VersionPart.PRERELEASE:
+                    ranges[$ - 1] ~= SimpleRange("=", semVer);
                     break;
-                case "~":
-                    final switch (wildcard)
-                    {
-                        case VersionPart.MAJOR:
-                            return;
-                        case VersionPart.MINOR:
-                        case VersionPart.PATCH:
-                            --wildcard;
-                            break;
-                        case VersionPart.PRERELEASE:
-                            --wildcard;
-                            --wildcard;
-                            break;
-                        case VersionPart.BUILD:
-                            assert(0, "Unexpected build part wildcard");
-                    }
-                    ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
-                    ranges[$-1] ~= SimpleRange("<", semVer.increment(wildcard).appendPrerelease0);
+                case VersionPart.BUILD:
+                    assert(0, "Unexpected build part wildcard");
+                }
+                break;
+            case "<":
+                ranges[$ - 1] ~= SimpleRange(operator, semVer.appendPrerelease0);
+                break;
+            case "<=":
+            case ">=":
+            case ">":
+                if (wildcard < VersionPart.PRERELEASE)
+                    semVer.appendPrerelease0;
+                ranges[$ - 1] ~= SimpleRange(operator, semVer);
+                break;
+            case "~":
+                final switch (wildcard)
+                {
+                case VersionPart.MAJOR:
+                    return;
+                case VersionPart.MINOR:
+                case VersionPart.PATCH:
+                    --wildcard;
                     break;
-                case "~>":
-                    final switch (wildcard)
-                    {
-                        case VersionPart.MAJOR:
-                            return;
-                        case VersionPart.MINOR:
-                            --wildcard;
-                            break;
-                        case VersionPart.PATCH:
-                        case VersionPart.PRERELEASE:
-                            --wildcard;
-                            --wildcard;
-                            break;
-                        case VersionPart.BUILD:
-                            assert(0, "Unexpected build part wildcard");
-                    }
-                    ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
-                    ranges[$-1] ~= SimpleRange("<", semVer.increment(wildcard).appendPrerelease0);
+                case VersionPart.PRERELEASE:
+                    --wildcard;
+                    --wildcard;
                     break;
-                case "^":
-                    if (wildcard == VersionPart.MAJOR || !semVer.prerelease.empty)
-                        return;
-                    if (semVer.ids[VersionPart.MAJOR] != 0)
-                    {
-                        ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
-                        ranges[$-1] ~= SimpleRange("<", semVer.increment(VersionPart.MAJOR).appendPrerelease0);
-                    }
-                    else if (semVer.ids[VersionPart.MINOR] != 0)
-                    {
-                        ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
-                        ranges[$-1] ~= SimpleRange("<", semVer.increment(VersionPart.MINOR).appendPrerelease0);
-                    }
-                    else
-                    {
-                        ranges[$-1] ~= SimpleRange(">=", semVer.appendPrerelease0);
-                        ranges[$-1] ~= SimpleRange("<", semVer.increment(VersionPart.PATCH).appendPrerelease0);
-                    }
+                case VersionPart.BUILD:
+                    assert(0, "Unexpected build part wildcard");
+                }
+                ranges[$ - 1] ~= SimpleRange(">=", semVer.appendPrerelease0);
+                ranges[$ - 1] ~= SimpleRange("<", semVer.increment(wildcard).appendPrerelease0);
+                break;
+            case "~>":
+                final switch (wildcard)
+                {
+                case VersionPart.MAJOR:
+                    return;
+                case VersionPart.MINOR:
+                    --wildcard;
                     break;
-                default:
-                    enforce(false, "Unexpected operator %s".format(operator));
+                case VersionPart.PATCH:
+                case VersionPart.PRERELEASE:
+                    --wildcard;
+                    --wildcard;
                     break;
+                case VersionPart.BUILD:
+                    assert(0, "Unexpected build part wildcard");
+                }
+                ranges[$ - 1] ~= SimpleRange(">=", semVer.appendPrerelease0);
+                ranges[$ - 1] ~= SimpleRange("<", semVer.increment(wildcard).appendPrerelease0);
+                break;
+            case "^":
+                if (wildcard == VersionPart.MAJOR || !semVer.prerelease.empty)
+                    return;
+                if (semVer.ids[VersionPart.MAJOR] != 0)
+                {
+                    ranges[$ - 1] ~= SimpleRange(">=", semVer.appendPrerelease0);
+                    ranges[$ - 1] ~= SimpleRange("<", semVer.increment(VersionPart.MAJOR)
+                            .appendPrerelease0);
+                }
+                else if (semVer.ids[VersionPart.MINOR] != 0)
+                {
+                    ranges[$ - 1] ~= SimpleRange(">=", semVer.appendPrerelease0);
+                    ranges[$ - 1] ~= SimpleRange("<", semVer.increment(VersionPart.MINOR)
+                            .appendPrerelease0);
+                }
+                else
+                {
+                    ranges[$ - 1] ~= SimpleRange(">=", semVer.appendPrerelease0);
+                    ranges[$ - 1] ~= SimpleRange("<", semVer.increment(VersionPart.PATCH)
+                            .appendPrerelease0);
+                }
+                break;
+            default:
+                enforce(false, "Unexpected operator %s".format(operator));
+                break;
             }
             semVerRange = m.captures.post;
         }
@@ -666,7 +683,7 @@ struct SemVerRange
 
     private static VersionPart wildcardAt(string[3] semVer)
     {
-        foreach (i; VersionPart.MAJOR..VersionPart.PRERELEASE)
+        foreach (i; VersionPart.MAJOR .. VersionPart.PRERELEASE)
         {
             if (Wildcards.canFind(semVer[i]))
                 return i;
@@ -689,15 +706,15 @@ struct SemVerRange
     {
         import std.string : format;
 
-        VersionPart wildcard = wildcardAt(semVer[0..3]);
+        VersionPart wildcard = wildcardAt(semVer[0 .. 3]);
         if (wildcard != VersionPart.PRERELEASE)
         {
-            if (semVer[wildcard+1..$].any!((a) => !Wildcards.canFind(a)))
+            if (semVer[wildcard + 1 .. $].any!((a) => !Wildcards.canFind(a)))
                 return "";
-            foreach (j; wildcard..VersionPart.PRERELEASE)
+            foreach (j; wildcard .. VersionPart.PRERELEASE)
                 semVer[j] = "0";
         }
-        string result = "%-(%s.%)".format(semVer[0..3]);
+        string result = "%-(%s.%)".format(semVer[0 .. 3]);
         if (!semVer[3].empty)
             result ~= semVer[3];
         return result;
@@ -750,18 +767,18 @@ struct SemVerRange
 
         switch (simpleRange.op)
         {
-            case "<":
-                return semVer < simpleRange.semVer;
-            case "<=":
-                return semVer <= simpleRange.semVer;
-            case "=":
-                return semVer == simpleRange.semVer;
-            case ">=":
-                return semVer >= simpleRange.semVer;
-            case ">":
-                return semVer > simpleRange.semVer;
-            default:
-                return false;
+        case "<":
+            return semVer < simpleRange.semVer;
+        case "<=":
+            return semVer <= simpleRange.semVer;
+        case "=":
+            return semVer == simpleRange.semVer;
+        case ">=":
+            return semVer >= simpleRange.semVer;
+        case ">":
+            return semVer > simpleRange.semVer;
+        default:
+            return false;
         }
     }
 
@@ -801,7 +818,8 @@ in
 }
 do
 {
-    auto found = semVers.sort!"a > b".find!(a => satisfies(a, semVerRange));
+    auto found = semVers.sort!"a > b"
+        .find!(a => satisfies(a, semVerRange));
     return found.empty ? SemVer("invalid") : found[0];
 }
 
@@ -955,7 +973,11 @@ unittest
     assert(semVers.maxSatisfying(SemVerRange("<=1.0.0")) == SemVer("1.0.0"));
     assert(semVers.maxSatisfying(SemVerRange(">=1.0")) == SemVer("1.1.0"));
 
-    semVers = [SemVer("1.0.0+build.3"), SemVer("1.0.0+build.1"), SemVer("1.1.0")];
+    semVers = [
+        SemVer("1.0.0+build.3"),
+        SemVer("1.0.0+build.1"),
+        SemVer("1.1.0"),
+    ];
     assert(semVers.maxSatisfying(SemVerRange("<=1.0.0")) == SemVer("1.0.0+build.3"));
     assert(semVers.maxSatisfying(SemVerRange(">=1.0")) == SemVer("1.1.0"));
 }
