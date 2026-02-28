@@ -1,0 +1,16 @@
+module(
+    name = "semver",
+    version = "0.7.0",
+)
+
+bazel_dep(name = "rules_d", version = "0.7.4")
+
+bazel_dep(name = "bazelrc-preset.bzl", version = "1.9.2", dev_dependency = True)
+
+# Select first d toolchain available for the current platform.
+d = use_extension("@rules_d//d:extensions.bzl", "d")
+d.toolchain(d_version = "dmd-2.112.0")
+d.toolchain(d_version = "ldc-1.41.0")
+use_repo(d, "d_toolchains")
+
+register_toolchains("@d_toolchains//:all")
