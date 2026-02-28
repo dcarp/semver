@@ -1,7 +1,6 @@
 [![Build Status](https://github.com/dcarp/semver/workflows/CI/badge.svg)](https://github.com/dcarp/semver/actions?workflow=CI)
 
-semver
-======
+# semver
 
 Semantic Versioning Library
 
@@ -10,8 +9,9 @@ Semantic Versioning Library
 This library parses, validates and compares version numbers and version ranges.
 
 It uses the following formats:
-* Semantic Versioning 2.0.0 - http://semver.org
-* Semantic Versioning Range - https://github.com/isaacs/node-semver
+
+- Semantic Versioning 2.0.0 - http://semver.org
+- Semantic Versioning Range - https://github.com/isaacs/node-semver
 
 ## Usage
 
