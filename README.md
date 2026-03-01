@@ -1,5 +1,3 @@
-[![Build Status](https://github.com/dcarp/semver/workflows/CI/badge.svg)](https://github.com/dcarp/semver/actions?workflow=CI)
-
 # semver
 
 Semantic Versioning Library

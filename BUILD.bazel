@@ -3,6 +3,7 @@ load("@rules_d//d:defs.bzl", "d_library", "d_test")
 d_library(
     name = "semver",
     srcs = ["source/semver.d"],
+    imports = ["source"],
     visibility = ["//visibility:public"],
 )
 
