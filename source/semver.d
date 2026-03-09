@@ -32,8 +32,8 @@
 
 module semver;
 
-import std.algorithm;
-import std.range;
+import std.algorithm : all, any, canFind, filter, find, min, sort, splitter;
+import std.range : empty, join, zip;
 import std.regex : matchAll, matchFirst, ctRegex;
 
 /**
@@ -826,6 +826,23 @@ do
     return found.empty ? SemVer("invalid") : found[0];
 }
 
+/**
+ * Return the earliest $(D_PSYMBOL Semver) from $(D_PARAM semVers) array that satisfies
+ * $(D_PARAM semVerRange) $(D_PSYMBOL SemVerRange).
+ */
+SemVer minSatisfying(SemVer[] semVers, SemVerRange semVerRange)
+in
+{
+    assert(semVers.all!"a.isValid");
+    assert(semVerRange.isValid);
+}
+do
+{
+    auto found = semVers.sort!"a < b"
+        .find!(a => satisfies(a, semVerRange));
+    return found.empty ? SemVer("invalid") : found[0];
+}
+
 unittest
 {
     assert(!SemVerRange().isValid);
@@ -983,4 +1000,9 @@ unittest
     ];
     assert(semVers.maxSatisfying(SemVerRange("<=1.0.0")) == SemVer("1.0.0+build.3"));
     assert(semVers.maxSatisfying(SemVerRange(">=1.0")) == SemVer("1.1.0"));
+
+    semVers = [SemVer("1.1.0"), SemVer("1.0.0"), SemVer("0.8.0")];
+    assert(semVers.minSatisfying(SemVerRange(">=1.0")) == SemVer("1.0.0"));
+    assert(semVers.minSatisfying(SemVerRange("<=0.8.0")) == SemVer("0.8.0"));
+    assert(!semVers.minSatisfying(SemVerRange(">2.0")).isValid);
 }

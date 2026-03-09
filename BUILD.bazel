@@ -2,12 +2,12 @@ load("@rules_d//d:defs.bzl", "d_library", "d_test")
 
 d_library(
     name = "semver",
-    srcs = ["source/semver.d"],
+    srcs = glob(["source/*.d"]),
     imports = ["source"],
     visibility = ["//visibility:public"],
 )
 
 d_test(
     name = "semver_test",
-    srcs = ["source/semver.d"],
+    srcs = glob(["source/*.d"]),
 )
